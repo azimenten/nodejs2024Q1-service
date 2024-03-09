@@ -28,46 +28,66 @@ export class UsersService {
     };
 
     this.users.push(newUser);
-    return this.users;
+    delete newUser.password;
+    return newUser;
   }
 
   findAll() {
-    return this.users;
+    return this.users.map((user) => {
+      const userCopy = { ...user };
+      delete userCopy.password;
+      return userCopy;
+    });
   }
 
   findOne(id: string) {
-    if (!validate(id)) {
-      throw new BadRequestException('invalid id (not uuid)');
-    }
-
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
     const user = this.users.find((user) => user.id === id);
     if (!user) {
-      throw new NotFoundException('userId does not exist');
+      throw new NotFoundException('Not found user');
     }
-
-    if (user) {
-      return user;
-    }
+    // const copyUser = user;
+    const userCopy = { ...user };
+    delete userCopy.password;
+    // console.log('copyUser', copyUser);
+    return userCopy;
   }
 
   update(id: string, updateUserDto: UpdateUserDto) {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
-    if (!this.users.find((user) => user.id === id)) {
-      throw new NotFoundException('userId does not exist');
+
+    if (!updateUserDto.oldPassword && !updateUserDto.newPassword) {
+      throw new BadRequestException(
+        'Old password or new password is not defined',
+      );
     }
 
     const index = this.users.findIndex((user) => user.id === id);
-    if (this.users[index].password !== updateUserDto.oldPassword) {
-      throw new ForbiddenException('oldPassword is wrong');
+    if (index === -1) {
+      throw new NotFoundException('User not found');
     }
 
-    if (this.users[index].password === updateUserDto.oldPassword) {
-      this.users[index].password = updateUserDto.newPassword;
-      this.users[index].version = this.users[index].version + 1;
-      return this.users[index];
+    const user = this.users.find((user) => user.id === id);
+
+    if (updateUserDto.oldPassword !== user.password) {
+      throw new ForbiddenException('oldPassword is wrong');
     }
+    const updatedVersion = user.version + 1;
+    const newPassword = updateUserDto.newPassword;
+
+    const updatedUser = {
+      ...user,
+      password: newPassword,
+      updatedAt: Date.now(),
+      version: updatedVersion,
+    };
+    this.users[index] = updatedUser;
+    const result = { ...updatedUser };
+
+    delete result.password;
+    return result;
   }
 
   remove(id: string) {
