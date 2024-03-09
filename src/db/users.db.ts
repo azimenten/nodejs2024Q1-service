@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const users: User[] = [
   {
     id: uuidv4(),
-    login: 'login',
+    login: 'TEST_LOGIN',
     password: '123456',
     version: 1,
     createdAt: 1709924576109,
