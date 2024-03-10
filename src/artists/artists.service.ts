@@ -58,7 +58,7 @@ export class ArtistsService {
 
     const index = this.artists.findIndex((artist) => artist.id === id);
     if (index === -1) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Artist is not found');
     }
 
     const artist = this.artists.find((artist) => artist.id === id);

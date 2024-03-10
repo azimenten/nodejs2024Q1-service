@@ -13,19 +13,6 @@ import { v4 as uuidv4, validate } from 'uuid';
 export class AlbumsService {
   private albums: Album[] = albums;
 
-  findAll() {
-    return this.albums;
-  }
-
-  findOne(id: string) {
-    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const album = this.albums.find((album) => album.id === id);
-    if (!album) {
-      throw new NotFoundException('Album with such id was not found');
-    }
-    return album;
-  }
-
   create(createAlbumDto: CreateAlbumDto) {
     if (!createAlbumDto.name || !createAlbumDto.year) {
       throw new BadRequestException('body does not contain required fields');
@@ -40,6 +27,19 @@ export class AlbumsService {
 
     this.albums.push(newAlbum);
     return newAlbum;
+  }
+
+  findAll() {
+    return this.albums;
+  }
+
+  findOne(id: string) {
+    if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
+    const album = this.albums.find((album) => album.id === id);
+    if (!album) {
+      throw new NotFoundException('Album with such id was not found');
+    }
+    return album;
   }
 
   update(id: string, updateAlbumDto: UpdateAlbumDto) {

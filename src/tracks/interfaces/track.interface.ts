@@ -1,4 +1,4 @@
-export class CreateTrackDto {
+export interface Track {
   id: string; // uuid v4
   name: string;
   artistId: string | null; // refers to Artist
