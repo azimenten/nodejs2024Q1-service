@@ -118,7 +118,7 @@ security:
 
 paths:
   
-  /users:
+  /user:
     get:
       tags:
         - Users
