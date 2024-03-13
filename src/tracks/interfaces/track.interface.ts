@@ -1,4 +1,4 @@
-export interface Track {
+export interface ITrack {
   id: string; // uuid v4
   name: string;
   artistId: string | null; // refers to Artist

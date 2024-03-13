@@ -5,13 +5,14 @@ import {
 } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { Artist } from './interfaces/artist.interface';
-import { artists } from 'src/db/artists.db';
+import { artistDb } from 'src/db/artists.db';
 import { v4 as uuidv4, validate } from 'uuid';
+import { albumDb } from 'src/db/albums.db';
+import { trackDb } from 'src/db/tracks.db';
+import { favoriteDb } from 'src/db/favorites.db';
 
 @Injectable()
 export class ArtistsService {
-  private artists: Artist[] = artists;
   create(createArtistDto: CreateArtistDto) {
     if (!createArtistDto.name || !createArtistDto.grammy) {
       throw new BadRequestException('body does not contain required fields');
@@ -23,17 +24,17 @@ export class ArtistsService {
       grammy: createArtistDto.grammy,
     };
 
-    this.artists.push(newArtist);
+    artistDb.addArtist(newArtist);
     return newArtist;
   }
 
   findAll() {
-    return this.artists;
+    return artistDb.getArtists();
   }
 
   findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const artist = this.artists.find((artist) => artist.id === id);
+    const artist = artistDb.getArtistById(id);
     if (!artist) {
       throw new NotFoundException('Artist with such id was not found');
     }
@@ -56,19 +57,17 @@ export class ArtistsService {
       throw new BadRequestException('Type of name or grammy is not valid');
     }
 
-    const index = this.artists.findIndex((artist) => artist.id === id);
-    if (index === -1) {
+    const artist = artistDb.getArtistById(id);
+    if (!artist) {
       throw new NotFoundException('Artist is not found');
     }
-
-    const artist = this.artists.find((artist) => artist.id === id);
 
     const updatedArtist = {
       ...artist,
       name: updateArtistDto.name,
       grammy: updateArtistDto.grammy,
     };
-    this.artists[index] = updatedArtist;
+    artistDb.updateArtistById(id, updatedArtist);
     return updatedArtist;
   }
 
@@ -76,12 +75,14 @@ export class ArtistsService {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
-    if (!this.artists.find((artist) => artist.id === id)) {
+    const artist = artistDb.getArtistById(id);
+    if (!artist) {
       throw new NotFoundException('Artist with such id was not found');
     }
-    if (this.artists.find((artist) => artist.id === id)) {
-      this.artists = this.artists.filter((artist) => artist.id !== id);
-    }
-    return;
+
+    artistDb.deleteArtist(id);
+    albumDb.deleteArtist(id);
+    trackDb.deleteArtist(id);
+    favoriteDb.deleteArtistFromFavorites(id);
   }
 }

@@ -5,14 +5,13 @@ import {
 } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { Album } from './interfaces/album.interface';
-import { albums } from 'src/db/albums.db';
+import { albumDb } from 'src/db/albums.db';
 import { v4 as uuidv4, validate } from 'uuid';
+import { trackDb } from 'src/db/tracks.db';
+import { favoriteDb } from 'src/db/favorites.db';
 
 @Injectable()
 export class AlbumsService {
-  private albums: Album[] = albums;
-
   create(createAlbumDto: CreateAlbumDto) {
     if (!createAlbumDto.name || !createAlbumDto.year) {
       throw new BadRequestException('body does not contain required fields');
@@ -22,20 +21,20 @@ export class AlbumsService {
       id: uuidv4(),
       name: createAlbumDto.name,
       year: createAlbumDto.year,
-      artistId: null,
+      artistId: createAlbumDto.artistId,
     };
 
-    this.albums.push(newAlbum);
+    albumDb.addAlbum(newAlbum);
     return newAlbum;
   }
 
   findAll() {
-    return this.albums;
+    return albumDb.getAlbums();
   }
 
   findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const album = this.albums.find((album) => album.id === id);
+    const album = albumDb.getAlbumById(id);
     if (!album) {
       throw new NotFoundException('Album with such id was not found');
     }
@@ -59,12 +58,10 @@ export class AlbumsService {
       throw new BadRequestException('Type of name or grammy is not valid');
     }
 
-    const index = this.albums.findIndex((album) => album.id === id);
-    if (index === -1) {
+    const album = albumDb.getAlbumById(id);
+    if (!album) {
       throw new NotFoundException('User not found');
     }
-
-    const album = this.albums.find((album) => album.id === id);
 
     const updatedAlbum = {
       ...album,
@@ -72,7 +69,7 @@ export class AlbumsService {
       year: updateAlbumDto.year,
       artistId: updateAlbumDto.artistId,
     };
-    this.albums[index] = updatedAlbum;
+    albumDb.updateAlbumById(id, updatedAlbum);
     return updatedAlbum;
   }
 
@@ -80,12 +77,14 @@ export class AlbumsService {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
-    if (!this.albums.find((album) => album.id === id)) {
+
+    const album = albumDb.getAlbumById(id);
+    if (!album) {
       throw new NotFoundException('Album with such id was not found');
     }
-    if (this.albums.find((album) => album.id === id)) {
-      this.albums = this.albums.filter((album) => album.id !== id);
-    }
-    return;
+
+    albumDb.deleteAlbum(id);
+    trackDb.deleteAlbum(id);
+    favoriteDb.deleteAlbumFromFavorites(id);
   }
 }
