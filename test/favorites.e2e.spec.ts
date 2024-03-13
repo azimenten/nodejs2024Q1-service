@@ -185,7 +185,6 @@ describe('Favorites (e2e)', () => {
       const trackSearchRes = responseAfterDeletion.body.tracks.find(
         (track) => track.id === trackId,
       );
-      console.log(responseAfterDeletion.body);
       expect(artistSearchRes).toBeUndefined();
       expect(albumSearchRes).toBeUndefined();
       expect(trackSearchRes).toBeUndefined();
