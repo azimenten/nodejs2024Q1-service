@@ -15,6 +15,8 @@ async function bootstrap() {
   const swaggerData = await YAML.parse(fileContents);
   SwaggerModule.setup('doc', app, swaggerData);
 
-  await app.listen(port);
+  await app.listen(port, () =>
+    console.log(`Server is listening on port ${port}`),
+  );
 }
 bootstrap();
