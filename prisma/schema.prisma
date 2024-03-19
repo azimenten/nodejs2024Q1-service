@@ -12,3 +12,34 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Album {
+  id        String   @id @default(uuid())
+  name      String
+  year      Int
+  artistId  String? @unique
+}
+
+model Artist {
+  id        String   @id @default(uuid())
+  name      String
+  grammy    Boolean
+}
+
+model  Track {
+  id        String   @id @default(uuid())
+  name      String
+  artistId  String? @unique
+  albumId   String? @unique
+  duration  Int
+}
+
+
+model User {
+  id        String   @id @default(uuid())
+  login     String
+  password  String
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
