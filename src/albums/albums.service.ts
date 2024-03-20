@@ -90,7 +90,7 @@ export class AlbumsService {
       throw new NotFoundException('Album with such id was not found');
     }
     this.prisma.album.delete({ where: { id } });
-    this.prisma.track.delete({ where: { id } });
+    this.prisma.track.deleteMany({ where: { albumId: id } });
     this.prisma.favorites.update({
       where: { id: '100' },
       data: {
