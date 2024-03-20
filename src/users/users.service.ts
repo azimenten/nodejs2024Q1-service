@@ -6,42 +6,52 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { userDb } from 'src/db/users.db';
-import { v4 as uuidv4, validate } from 'uuid';
+// import { userDb } from 'src/db/users.db';
+import { validate } from 'uuid';
+import { PrismaService } from 'src/prisma/prisma.service';
+// import { IUser } from './interfaces/user.interface';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createUserDto: CreateUserDto) {
     if (!createUserDto.login || !createUserDto.password) {
       throw new BadRequestException('body does not contain required fields');
     }
 
-    const newUser = {
-      id: uuidv4(),
-      login: createUserDto.login,
-      password: createUserDto.password,
-      version: 1,
-      createdAt: new Date().getTime(),
-      updatedAt: new Date().getTime(),
-    };
+    // const newUser = {
+    //   id: uuidv4(),
+    //   login: createUserDto.login,
+    //   password: createUserDto.password,
+    //   version: 1,
+    //   createdAt: new Date().getTime(),
+    //   updatedAt: new Date().getTime(),
+    // };
 
-    return userDb.addUser(newUser);
+    const newUser = await this.prisma.user.create({ data: createUserDto });
+
+    return await this.getUserWithoutPassword(newUser);
   }
 
-  findAll() {
-    return userDb.getUsers();
+  async findAll() {
+    const users = await this.prisma.user.findMany();
+    return users.map((user) => {
+      return this.getUserWithoutPassword(user);
+    });
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const user = userDb.getUserById(id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('Not found user');
     }
-    return user;
+    return await this.getUserWithoutPassword(user);
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
@@ -52,7 +62,7 @@ export class UsersService {
       );
     }
 
-    const user = userDb.getUserByIdWithPassword(id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -60,30 +70,45 @@ export class UsersService {
     if (updateUserDto.oldPassword !== user.password) {
       throw new ForbiddenException('oldPassword is wrong');
     }
-    const updatedVersion = user.version + 1;
-    const newPassword = updateUserDto.newPassword;
+    // const updatedVersion = user.version + 1;
+    // const newPassword = updateUserDto.newPassword;
 
-    const updatedUser = {
-      ...user,
-      password: newPassword,
-      updatedAt: Date.now(),
-      version: updatedVersion,
-    };
-    userDb.updateUserById(id, updatedUser);
-    const result = { ...updatedUser };
+    // const updatedUser = {
+    //   ...user,
+    //   password: newPassword,
+    //   updatedAt: Date.now(),
+    //   version: updatedVersion,
+    // };
+    // userDb.updateUserById(id, updatedUser);
+    // const result = { ...updatedUser };
 
-    delete result.password;
-    return result;
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: {
+        password: updateUserDto.newPassword,
+        version: {
+          increment: 1,
+        },
+      },
+    });
+
+    return await this.getUserWithoutPassword(updatedUser);
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
-    const user = userDb.getUserById(id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('userId does not exist');
     }
-    userDb.deleteUser(id);
+    await this.prisma.user.delete({ where: { id } });
   }
+
+  getUserWithoutPassword = async (user: User) => {
+    const userWithoutPassword = { ...user };
+    delete userWithoutPassword.password;
+    return userWithoutPassword;
+  };
 }

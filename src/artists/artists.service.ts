@@ -16,7 +16,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ArtistsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createArtistDto: CreateArtistDto) {
+  async create(createArtistDto: CreateArtistDto) {
     if (!createArtistDto.name || !createArtistDto.grammy) {
       throw new BadRequestException('body does not contain required fields');
     }
@@ -28,24 +28,26 @@ export class ArtistsService {
     // };
 
     // artistDb.addArtist(newArtist);
-    const newArtist = this.prisma.artist.create({ data: createArtistDto });
+    const newArtist = await this.prisma.artist.create({
+      data: createArtistDto,
+    });
     return newArtist;
   }
 
-  findAll() {
-    return this.prisma.artist.findMany();
+  async findAll() {
+    return await this.prisma.artist.findMany();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const artist = this.prisma.artist.findUnique({ where: { id } });
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
     if (!artist) {
       throw new NotFoundException('Artist with such id was not found');
     }
     return artist;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto) {
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
@@ -61,7 +63,7 @@ export class ArtistsService {
       throw new BadRequestException('Type of name or grammy is not valid');
     }
 
-    const artist = this.prisma.artist.findUnique({ where: { id } });
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
     if (!artist) {
       throw new NotFoundException('Artist is not found');
     }
@@ -72,18 +74,18 @@ export class ArtistsService {
     //   grammy: updateArtistDto.grammy,
     // };
     // artistDb.updateArtistById(id, updatedArtist);
-    const updatedArtist = this.prisma.artist.update({
+    const updatedArtist = await this.prisma.artist.update({
       where: { id },
       data: updateArtistDto,
     });
     return updatedArtist;
   }
 
-  remove(id: string) {
+  async remove(id: string) {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
-    const artist = this.prisma.artist.findUnique({ where: { id } });
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
     if (!artist) {
       throw new NotFoundException('Artist with such id was not found');
     }
@@ -91,10 +93,10 @@ export class ArtistsService {
     // albumDb.deleteArtist(id);
     // trackDb.deleteArtist(id);
     // favoriteDb.deleteArtistFromFavorites(id);
-    this.prisma.artist.delete({ where: { id } });
-    this.prisma.album.deleteMany({ where: { artistId: id } });
-    this.prisma.track.deleteMany({ where: { artistId: id } });
-    this.prisma.favorites.update({
+    await this.prisma.artist.delete({ where: { id } });
+    await this.prisma.album.deleteMany({ where: { artistId: id } });
+    await this.prisma.track.deleteMany({ where: { artistId: id } });
+    await this.prisma.favorites.update({
       where: { id: '100' },
       data: {
         artists: {
