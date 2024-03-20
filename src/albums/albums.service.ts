@@ -5,36 +5,39 @@ import {
 } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { albumDb } from 'src/db/albums.db';
-import { v4 as uuidv4, validate } from 'uuid';
-import { trackDb } from 'src/db/tracks.db';
-import { favoriteDb } from 'src/db/favorites.db';
+// import { albumDb } from 'src/db/albums.db';
+import { validate } from 'uuid';
+// import { trackDb } from 'src/db/tracks.db';
+// import { favoriteDb } from 'src/db/favorites.db';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AlbumsService {
+  constructor(private readonly prisma: PrismaService) {}
   create(createAlbumDto: CreateAlbumDto) {
     if (!createAlbumDto.name || !createAlbumDto.year) {
       throw new BadRequestException('body does not contain required fields');
     }
 
-    const newAlbum = {
-      id: uuidv4(),
-      name: createAlbumDto.name,
-      year: createAlbumDto.year,
-      artistId: createAlbumDto.artistId,
-    };
+    // const newAlbum = {
+    //   id: uuidv4(),
+    //   name: createAlbumDto.name,
+    //   year: createAlbumDto.year,
+    //   artistId: createAlbumDto.artistId,
+    // };
 
-    albumDb.addAlbum(newAlbum);
+    // albumDb.addAlbum(newAlbum);
+    const newAlbum = this.prisma.album.create({ data: createAlbumDto });
     return newAlbum;
   }
 
   findAll() {
-    return albumDb.getAlbums();
+    return this.prisma.album.findMany();
   }
 
   findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const album = albumDb.getAlbumById(id);
+    const album = this.prisma.album.findUnique({ where: { id } });
     if (!album) {
       throw new NotFoundException('Album with such id was not found');
     }
@@ -58,18 +61,22 @@ export class AlbumsService {
       throw new BadRequestException('Type of name or grammy is not valid');
     }
 
-    const album = albumDb.getAlbumById(id);
+    const album = this.prisma.album.findUnique({ where: { id } });
     if (!album) {
       throw new NotFoundException('User not found');
     }
 
-    const updatedAlbum = {
-      ...album,
-      name: updateAlbumDto.name,
-      year: updateAlbumDto.year,
-      artistId: updateAlbumDto.artistId,
-    };
-    albumDb.updateAlbumById(id, updatedAlbum);
+    // const updatedAlbum = {
+    //   ...album,
+    //   name: updateAlbumDto.name,
+    //   year: updateAlbumDto.year,
+    //   artistId: updateAlbumDto.artistId,
+    // };
+    // albumDb.updateAlbumById(id, updatedAlbum);
+    const updatedAlbum = this.prisma.album.update({
+      where: { id },
+      data: updateAlbumDto,
+    });
     return updatedAlbum;
   }
 
@@ -78,13 +85,25 @@ export class AlbumsService {
       throw new BadRequestException('invalid id (not uuid)');
     }
 
-    const album = albumDb.getAlbumById(id);
+    const album = this.prisma.album.findUnique({ where: { id } });
     if (!album) {
       throw new NotFoundException('Album with such id was not found');
     }
+    this.prisma.album.delete({ where: { id } });
+    this.prisma.track.delete({ where: { id } });
+    this.prisma.favorites.update({
+      where: { id: '100' },
+      data: {
+        albums: {
+          disconnect: {
+            id: id,
+          },
+        },
+      },
+    });
 
-    albumDb.deleteAlbum(id);
-    trackDb.deleteAlbum(id);
-    favoriteDb.deleteAlbumFromFavorites(id);
+    // albumDb.deleteAlbum(id);
+    // trackDb.deleteAlbum(id);
+    // favoriteDb.deleteAlbumFromFavorites(id);
   }
 }
