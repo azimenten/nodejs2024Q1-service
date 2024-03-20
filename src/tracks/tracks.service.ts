@@ -5,36 +5,40 @@ import {
 } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { v4 as uuidv4, validate } from 'uuid';
+import { validate } from 'uuid';
 import { trackDb } from 'src/db/tracks.db';
-import { favoriteDb } from 'src/db/favorites.db';
+// import { favoriteDb } from 'src/db/favorites.db';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TracksService {
+  constructor(private readonly prisma: PrismaService) {}
+
   create(createTrackDto: CreateTrackDto) {
     if (!createTrackDto.name || !createTrackDto.duration) {
       throw new BadRequestException('body does not contain required fields');
     }
 
-    const newTrack = {
-      id: uuidv4(),
-      name: createTrackDto.name,
-      artistId: createTrackDto.artistId,
-      albumId: createTrackDto.albumId,
-      duration: createTrackDto.duration,
-    };
+    // const newTrack = {
+    //   id: uuidv4(),
+    //   name: createTrackDto.name,
+    //   artistId: createTrackDto.artistId,
+    //   albumId: createTrackDto.albumId,
+    //   duration: createTrackDto.duration,
+    // };
 
-    trackDb.addTrack(newTrack);
+    // trackDb.addTrack(newTrack);
+    const newTrack = this.prisma.track.create({ data: createTrackDto });
     return newTrack;
   }
 
   findAll() {
-    return trackDb.getTracks();
+    return this.prisma.track.findMany();
   }
 
   findOne(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const track = trackDb.getTrackById(id);
+    const track = this.prisma.track.findUnique({ where: { id } });
     if (!track) {
       throw new NotFoundException('Artist with such id was not found');
     }
@@ -57,18 +61,22 @@ export class TracksService {
       throw new BadRequestException('Type of name or duraton is not valid');
     }
 
-    const track = trackDb.getTrackById(id);
+    const track = this.prisma.track.findUnique({ where: { id } });
     if (!track) {
       throw new NotFoundException('Track is not found');
     }
 
-    const updatedTrack = {
-      ...track,
-      name: updateTrackDto.name,
-      duration: updateTrackDto.duration,
-    };
+    // const updatedTrack = {
+    //   ...track,
+    //   name: updateTrackDto.name,
+    //   duration: updateTrackDto.duration,
+    // };
 
-    trackDb.updateTrackById(id, updatedTrack);
+    // trackDb.updateTrackById(id, updatedTrack);
+    const updatedTrack = this.prisma.track.update({
+      where: { id },
+      data: updateTrackDto,
+    });
     return updatedTrack;
   }
 
@@ -80,7 +88,19 @@ export class TracksService {
     if (!track) {
       throw new NotFoundException('Artist with such id was not found');
     }
-    trackDb.deleteTrack(id);
-    favoriteDb.deleteTrackFromFavorites(id);
+    // trackDb.deleteTrack(id);
+    // favoriteDb.deleteTrackFromFavorites(id);
+    this.prisma.track.delete({ where: { id } });
+
+    this.prisma.favorites.update({
+      where: { id: '100' },
+      data: {
+        tracks: {
+          disconnect: {
+            id: id,
+          },
+        },
+      },
+    });
   }
 }
