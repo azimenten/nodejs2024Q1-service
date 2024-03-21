@@ -54,7 +54,7 @@ model User {
 }
 
 model Favorites {
-  id      String   @id @default("100")
+  id      String   @id @default(uuid())
   artists Artist[]
   albums  Album[]
   tracks  Track[]

@@ -7,33 +7,36 @@ import {
 import { albumDb } from 'src/db/albums.db';
 import { artistDb } from 'src/db/artists.db';
 import { favoriteDb } from 'src/db/favorites.db';
-import { trackDb } from 'src/db/tracks.db';
+// import { trackDb } from 'src/db/tracks.db';
 import { validate } from 'uuid';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class FavoritesService {
-  findAll() {
-    return favoriteDb.getFavorites();
+  constructor(private readonly prisma: PrismaService) {}
+  async findAll() {
+    return await this.prisma.favorites.findMany();
   }
 
-  addTrack(id: string) {
+  async addTrack(id: string) {
     if (!validate(id)) throw new BadRequestException('Invalid id (not uuid)');
-    const track = trackDb.getTrackById(id);
+    const track = await this.prisma.track.findFirst({ where: { id } });
     if (!track) {
       throw new UnprocessableEntityException(
         'Track with such id was not found',
       );
     }
 
-    favoriteDb.addTrackToFavorites(track);
+    // favoriteDb.addTrackToFavorites(track);
+    this.prisma.favorites.create({ data: track });
     return track;
   }
 
-  removeTrack(id: string) {
+  async removeTrack(id: string) {
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
-    const track = favoriteDb.getTrackFromFavorites(id);
+    const track = await this.prisma.favorites.findFirst({ where: { id } });
 
     if (!track) {
       throw new NotFoundException('Track with such id was not found');

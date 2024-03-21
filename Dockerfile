@@ -17,5 +17,7 @@ COPY . .
 # COPY --from=build_app /app /app
 
 EXPOSE 4000:4000
+# RUN npx prisma migrate
+RUN npx prisma generate
 
 CMD ["npm", "run", "start" ]

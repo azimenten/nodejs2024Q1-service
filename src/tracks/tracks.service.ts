@@ -81,26 +81,38 @@ export class TracksService {
   }
 
   async remove(id: string) {
+    console.log('kkk', id);
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
     const track = await this.prisma.track.findUnique({ where: { id } });
+    console.log('lll', id);
     if (!track) {
       throw new NotFoundException('Artist with such id was not found');
     }
     // trackDb.deleteTrack(id);
     // favoriteDb.deleteTrackFromFavorites(id);
-    await this.prisma.track.delete({ where: { id } });
 
-    await this.prisma.favorites.update({
-      where: { id: '100' },
-      data: {
-        tracks: {
-          disconnect: {
-            id: id,
-          },
-        },
+    console.log('mmm', id);
+    const favorites = await this.prisma.favorites.findMany({
+      where: {
+        tracks: { some: { id } },
       },
     });
+    for (const favorite of favorites) {
+      await this.prisma.favorites.update({
+        where: { id: favorite.id },
+        data: {
+          tracks: {
+            disconnect: {
+              id,
+            },
+          },
+        },
+      });
+    }
+
+    console.log('nnn', id);
+    await this.prisma.track.delete({ where: { id } });
   }
 }
