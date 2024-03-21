@@ -92,10 +92,9 @@ export class AlbumsService {
 
     const favorites = await this.prisma.favorites.findMany({
       where: {
-        tracks: { some: { id } },
+        albums: { some: { id } },
       },
     });
-
     for (const favorite of favorites) {
       await this.prisma.favorites.update({
         where: { id: favorite.id },

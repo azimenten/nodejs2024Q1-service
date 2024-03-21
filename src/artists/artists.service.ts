@@ -93,25 +93,28 @@ export class ArtistsService {
     // albumDb.deleteArtist(id);
     // trackDb.deleteArtist(id);
     // favoriteDb.deleteArtistFromFavorites(id);
-    const favorites = await this.prisma.favorites.findMany({
-      where: {
-        artists: { some: { id } },
-      },
-    });
-    for (const favorite of favorites) {
-      await this.prisma.favorites.update({
-        where: { id: favorite.id },
-        data: {
-          artists: {
-            disconnect: {
-              id,
-            },
-          },
-        },
-      });
-    }
+    // const favorites = await this.prisma.favorites.findFirst({
+    //   where: {
+    //     artists: { some: { id } },
+    //   },
+    // });
+
+    // if (favorites) {
+    //   await this.prisma.favorites.update({
+    //     where: { id: favorites.id },
+    //     data: {
+    //       artists: {
+    //         disconnect: {
+    //           id,
+    //         },
+    //       },
+    //     },
+    //   });
+    // }
+    // const albums = await this.prisma.album.findMany({
+    //   where: { artistId: id },
+    // });
+    // await this.prisma.track.deleteMany({ where: { artistId: id } });
     await this.prisma.artist.delete({ where: { id } });
-    await this.prisma.album.deleteMany({ where: { artistId: id } });
-    await this.prisma.track.deleteMany({ where: { artistId: id } });
   }
 }

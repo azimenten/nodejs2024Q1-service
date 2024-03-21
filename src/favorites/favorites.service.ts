@@ -14,8 +14,43 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class FavoritesService {
   constructor(private readonly prisma: PrismaService) {}
+
   async findAll() {
-    return await this.prisma.favorites.findMany();
+    const res1 = await this.prisma.favorites.findFirst({
+      select: {
+        artists: {
+          select: {
+            id: true,
+            name: true,
+            grammy: true,
+          },
+        },
+        tracks: {
+          select: {
+            id: true,
+            duration: true,
+            name: true,
+            artistId: true,
+            albumId: true,
+          },
+        },
+        albums: {
+          select: { id: true, name: true, artistId: true, year: true },
+        },
+      },
+    });
+    const res2 = await this.prisma.favorites.findFirst({
+      select: {
+        artists: true,
+        tracks: true,
+        albums: true,
+      },
+    });
+    const res3 = await this.prisma.favorites.findFirst();
+    console.log('res1', res1);
+    console.log('res2', res2);
+    console.log('res3', res3);
+    return;
   }
 
   async addTrack(id: string) {
@@ -27,8 +62,23 @@ export class FavoritesService {
       );
     }
 
-    // favoriteDb.addTrackToFavorites(track);
-    this.prisma.favorites.create({ data: track });
+    let favorites = await this.prisma.favorites.findFirst();
+    if (!favorites) {
+      favorites = await this.prisma.favorites.create({
+        data: {
+          tracks: { connect: { id } },
+        },
+      });
+    }
+    const updatedFavorites = await this.prisma.favorites.update({
+      where: { id: favorites.id },
+      data: {
+        tracks: {
+          connect: { id },
+        },
+      },
+    });
+    console.log(updatedFavorites);
     return track;
   }
 

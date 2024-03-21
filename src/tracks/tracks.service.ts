@@ -81,7 +81,6 @@ export class TracksService {
   }
 
   async remove(id: string) {
-    console.log('kkk', id);
     if (!validate(id)) {
       throw new BadRequestException('invalid id (not uuid)');
     }
