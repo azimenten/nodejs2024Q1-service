@@ -107,7 +107,11 @@ export class UsersService {
   }
 
   getUserWithoutPassword = async (user: User) => {
-    const userWithoutPassword = { ...user };
+    const userWithoutPassword = {
+      ...user,
+      createdAt: new Date(user.createdAt).getTime(),
+      updatedAt: new Date(user.updatedAt).getTime(),
+    };
     delete userWithoutPassword.password;
     return userWithoutPassword;
   };
