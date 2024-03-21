@@ -89,19 +89,28 @@ export class AlbumsService {
     if (!album) {
       throw new NotFoundException('Album with such id was not found');
     }
-    await this.prisma.album.delete({ where: { id } });
-    await this.prisma.track.deleteMany({ where: { albumId: id } });
-    await this.prisma.favorites.update({
-      where: { id: '100' },
-      data: {
-        albums: {
-          disconnect: {
-            id: id,
-          },
-        },
+
+    const favorites = await this.prisma.favorites.findMany({
+      where: {
+        tracks: { some: { id } },
       },
     });
 
+    for (const favorite of favorites) {
+      await this.prisma.favorites.update({
+        where: { id: favorite.id },
+        data: {
+          albums: {
+            disconnect: {
+              id,
+            },
+          },
+        },
+      });
+    }
+
+    await this.prisma.album.delete({ where: { id } });
+    await this.prisma.track.deleteMany({ where: { albumId: id } });
     // albumDb.deleteAlbum(id);
     // trackDb.deleteAlbum(id);
     // favoriteDb.deleteAlbumFromFavorites(id);

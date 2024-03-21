@@ -86,14 +86,12 @@ export class TracksService {
       throw new BadRequestException('invalid id (not uuid)');
     }
     const track = await this.prisma.track.findUnique({ where: { id } });
-    console.log('lll', id);
     if (!track) {
       throw new NotFoundException('Artist with such id was not found');
     }
     // trackDb.deleteTrack(id);
     // favoriteDb.deleteTrackFromFavorites(id);
 
-    console.log('mmm', id);
     const favorites = await this.prisma.favorites.findMany({
       where: {
         tracks: { some: { id } },
@@ -112,7 +110,6 @@ export class TracksService {
       });
     }
 
-    console.log('nnn', id);
     await this.prisma.track.delete({ where: { id } });
   }
 }
