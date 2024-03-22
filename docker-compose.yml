@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
       context: .
     container_name: homelib
+    networks:
+      - user_defined
     restart: always
     environment:
       - POSTGRES_BASE_URL=postgres
@@ -20,6 +22,8 @@ services:
     env_file:
       - .env
     container_name: postgres_db
+    networks:
+      - user_defined
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -32,3 +36,7 @@ services:
 
 volumes:
   postgres_data:
+networks:
+  user_defined:
+    name: user_defined
+    driver: bridge
