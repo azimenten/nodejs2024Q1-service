@@ -17,6 +17,9 @@ services:
       - postgres
     ports:
       - 4000:4000
+    volumes:
+      - ./src:/app/src
+      - app_logs:/log/app
   postgres:
     image: postgres:latest
     env_file:
@@ -33,9 +36,12 @@ services:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - postgres_logs:/var/log/postgresql
 
 volumes:
+  app_logs:
   postgres_data:
+  postgres_logs:
 networks:
   user_defined:
     name: user_defined
