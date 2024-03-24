@@ -3,8 +3,8 @@ version: '3.8'
 services:
   app:
     build:
-      dockerfile: Dockerfile
       context: .
+      dockerfile: Dockerfile
     container_name: homelib
     networks:
       - user_defined
@@ -21,7 +21,9 @@ services:
       - ./src:/app/src
       - app_logs:/log/app
   postgres:
-    image: postgres:latest
+    build:
+        context: ./src/
+        dockerfile: Dockerfile
     env_file:
       - .env
     container_name: postgres_db
