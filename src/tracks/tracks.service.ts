@@ -6,8 +6,6 @@ import {
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { validate } from 'uuid';
-// import { trackDb } from 'src/db/tracks.db';
-// import { favoriteDb } from 'src/db/favorites.db';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -19,15 +17,6 @@ export class TracksService {
       throw new BadRequestException('body does not contain required fields');
     }
 
-    // const newTrack = {
-    //   id: uuidv4(),
-    //   name: createTrackDto.name,
-    //   artistId: createTrackDto.artistId,
-    //   albumId: createTrackDto.albumId,
-    //   duration: createTrackDto.duration,
-    // };
-
-    // trackDb.addTrack(newTrack);
     const newTrack = await this.prisma.track.create({ data: createTrackDto });
     return newTrack;
   }
@@ -66,13 +55,6 @@ export class TracksService {
       throw new NotFoundException('Track is not found');
     }
 
-    // const updatedTrack = {
-    //   ...track,
-    //   name: updateTrackDto.name,
-    //   duration: updateTrackDto.duration,
-    // };
-
-    // trackDb.updateTrackById(id, updatedTrack);
     const updatedTrack = await this.prisma.track.update({
       where: { id },
       data: updateTrackDto,
@@ -88,8 +70,6 @@ export class TracksService {
     if (!track) {
       throw new NotFoundException('Artist with such id was not found');
     }
-    // trackDb.deleteTrack(id);
-    // favoriteDb.deleteTrackFromFavorites(id);
 
     const favorites = await this.prisma.favorites.findMany({
       where: {

@@ -6,10 +6,8 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-// import { userDb } from 'src/db/users.db';
 import { validate } from 'uuid';
 import { PrismaService } from 'src/prisma/prisma.service';
-// import { IUser } from './interfaces/user.interface';
 import { User } from '@prisma/client';
 
 @Injectable()
@@ -20,15 +18,6 @@ export class UsersService {
     if (!createUserDto.login || !createUserDto.password) {
       throw new BadRequestException('body does not contain required fields');
     }
-
-    // const newUser = {
-    //   id: uuidv4(),
-    //   login: createUserDto.login,
-    //   password: createUserDto.password,
-    //   version: 1,
-    //   createdAt: new Date().getTime(),
-    //   updatedAt: new Date().getTime(),
-    // };
 
     const newUser = await this.prisma.user.create({ data: createUserDto });
 
@@ -70,17 +59,6 @@ export class UsersService {
     if (updateUserDto.oldPassword !== user.password) {
       throw new ForbiddenException('oldPassword is wrong');
     }
-    // const updatedVersion = user.version + 1;
-    // const newPassword = updateUserDto.newPassword;
-
-    // const updatedUser = {
-    //   ...user,
-    //   password: newPassword,
-    //   updatedAt: Date.now(),
-    //   version: updatedVersion,
-    // };
-    // userDb.updateUserById(id, updatedUser);
-    // const result = { ...updatedUser };
 
     const updatedUser = await this.prisma.user.update({
       where: { id },

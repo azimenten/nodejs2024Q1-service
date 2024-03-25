@@ -5,11 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-// import { artistDb } from 'src/db/artists.db';
 import { validate } from 'uuid';
-// import { albumDb } from 'src/db/albums.db';
-// import { trackDb } from 'src/db/tracks.db';
-// import { favoriteDb } from 'src/db/favorites.db';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -21,13 +17,6 @@ export class ArtistsService {
       throw new BadRequestException('body does not contain required fields');
     }
 
-    // const newArtist = {
-    //   id: uuidv4(),
-    //   name: createArtistDto.name,
-    //   grammy: createArtistDto.grammy,
-    // };
-
-    // artistDb.addArtist(newArtist);
     const newArtist = await this.prisma.artist.create({
       data: createArtistDto,
     });
@@ -68,12 +57,6 @@ export class ArtistsService {
       throw new NotFoundException('Artist is not found');
     }
 
-    // const updatedArtist = {
-    //   ...artist,
-    //   name: updateArtistDto.name,
-    //   grammy: updateArtistDto.grammy,
-    // };
-    // artistDb.updateArtistById(id, updatedArtist);
     const updatedArtist = await this.prisma.artist.update({
       where: { id },
       data: updateArtistDto,
@@ -89,32 +72,7 @@ export class ArtistsService {
     if (!artist) {
       throw new NotFoundException('Artist with such id was not found');
     }
-    // artistDb.deleteArtist(id);
-    // albumDb.deleteArtist(id);
-    // trackDb.deleteArtist(id);
-    // favoriteDb.deleteArtistFromFavorites(id);
-    // const favorites = await this.prisma.favorites.findFirst({
-    //   where: {
-    //     artists: { some: { id } },
-    //   },
-    // });
 
-    // if (favorites) {
-    //   await this.prisma.favorites.update({
-    //     where: { id: favorites.id },
-    //     data: {
-    //       artists: {
-    //         disconnect: {
-    //           id,
-    //         },
-    //       },
-    //     },
-    //   });
-    // }
-    // const albums = await this.prisma.album.findMany({
-    //   where: { artistId: id },
-    // });
-    // await this.prisma.track.deleteMany({ where: { artistId: id } });
     await this.prisma.artist.delete({ where: { id } });
   }
 }

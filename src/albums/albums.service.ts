@@ -5,10 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-// import { albumDb } from 'src/db/albums.db';
 import { validate } from 'uuid';
-// import { trackDb } from 'src/db/tracks.db';
-// import { favoriteDb } from 'src/db/favorites.db';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -19,14 +16,6 @@ export class AlbumsService {
       throw new BadRequestException('body does not contain required fields');
     }
 
-    // const newAlbum = {
-    //   id: uuidv4(),
-    //   name: createAlbumDto.name,
-    //   year: createAlbumDto.year,
-    //   artistId: createAlbumDto.artistId,
-    // };
-
-    // albumDb.addAlbum(newAlbum);
     const newAlbum = await this.prisma.album.create({ data: createAlbumDto });
     return newAlbum;
   }
@@ -66,13 +55,6 @@ export class AlbumsService {
       throw new NotFoundException('User not found');
     }
 
-    // const updatedAlbum = {
-    //   ...album,
-    //   name: updateAlbumDto.name,
-    //   year: updateAlbumDto.year,
-    //   artistId: updateAlbumDto.artistId,
-    // };
-    // albumDb.updateAlbumById(id, updatedAlbum);
     const updatedAlbum = await this.prisma.album.update({
       where: { id },
       data: updateAlbumDto,
@@ -110,8 +92,5 @@ export class AlbumsService {
 
     await this.prisma.album.delete({ where: { id } });
     await this.prisma.track.deleteMany({ where: { albumId: id } });
-    // albumDb.deleteAlbum(id);
-    // trackDb.deleteAlbum(id);
-    // favoriteDb.deleteAlbumFromFavorites(id);
   }
 }
