@@ -5,18 +5,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: aabdulsatarov/nodejs2024q1-service:latest
     container_name: homelib
     networks:
       - user_defined
     restart: always
-    environment:
-      - POSTGRES_BASE_URL=postgres
+    env_file:
+      - .env.docker
     depends_on:
       - postgres
     links:
       - postgres
     ports:
-      - 4000:4000
+      - ${PORT}:${PORT}
     volumes:
       - ./src:/app/src
       - app_logs:/log/app
